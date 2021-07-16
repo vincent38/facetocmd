@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 import cv2
+import sys
 import rospy as rp
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from std_msgs.msg import UInt8, Int8
 from cv_bridge import CvBridge, CvBridgeError
-import sys
 import time
 
 """
@@ -25,14 +27,14 @@ class CamCtrl:
     """
     def __init__(self):
         print("[INFO] Initializing class...")
+	rp.init_node("Test", anonymous=True)
         self.bridge = CvBridge()
         self.pV = rp.Publisher('verin_speed', UInt8, queue_size=10)
         self.pH = rp.Publisher('cmdhead', Int8, queue_size=10)
         self.face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-        self.s = rp.Subscriber('webcam/image_raw', Image, self.printIt)
+        self.s = rp.Subscriber('usb_cam/image_raw/compressed', CompressedImage, self.printIt)
         self.sH = rp.Subscriber('head', Int8, self.updateHead)
         self.head = 0
-        rp.init_node("Test", anonymous=True)
         #self.rate = rp.Rate(10)
         print("[INFO] Init done.")
 
@@ -53,7 +55,7 @@ class CamCtrl:
         bigx = 320
         bigy = 240
         try:
-            cvi = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            cvi = self.bridge.compressed_imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
             exit()
